@@ -17,7 +17,7 @@ const Drawer = (props: Props) => {
       }
     >
       <li>
-        <button onClick={props.handleToggle}>X</button>
+        <button onClick={props.handleToggle}>&#10060;</button>
       </li>
       <li>
         <Link href="/">Home</Link>

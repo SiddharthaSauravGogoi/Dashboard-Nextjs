@@ -2,26 +2,20 @@ import React from 'react';
 import axios from 'axios';
 import { GetServerSideProps } from 'next';
 import UserModel from '../models/UserModel';
-import styles from '../styles/Table.module.css';
+import UserTable from '../components/Users/usertable';
 
 const Users = ({ userData }: { userData: UserModel[] }) => {
+  const [query, setQuery] = React.useState<string>('');
   return (
     <section>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-        <tbody>
-          {userData.map((user: UserModel) => (
-            <tr key={user.id}>
-              <td> {user.name}</td> <td>{user.email}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <label htmlFor="search">
+        <input
+          type="text"
+          placeholder="search"
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </label>
+      <UserTable query={query} userData={userData} />
     </section>
   );
 };

@@ -20,3 +20,9 @@ button {
   background: none;
   cursor: pointer;
 }
+
+input {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  width: 350px;
+}
