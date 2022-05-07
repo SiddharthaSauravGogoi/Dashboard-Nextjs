@@ -1,0 +1,66 @@
+.nav {
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+}
+
+.nav a {
+  padding: 0 1rem;
+}
+
+.nav button div {
+  width: 35px;
+  height: 5px;
+  background-color: black;
+  margin: 6px 0;
+}
+
+.drawer {
+  overflow-y: scroll;
+  list-style: none;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 0;
+  overflow: hidden;
+  max-width: 290px;
+  z-index: 9;
+  background-color: #f3f4f6;
+  padding: 0;
+}
+
+.drawer.showMenu {
+  width: 100%;
+}
+
+.drawer li a {
+  display: block;
+  padding: 10px 30px;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.drawer li button {
+  padding: 10px 30px;
+}
+
+.drawer li a:hover {
+  color: #0070f3;
+}
+
+.drawer li:first-child {
+  margin: 3rem 0;
+}
+
+@media screen and (max-width: 425px) {
+  .nav a {
+    padding: 0 0.25rem;
+  }
+}
