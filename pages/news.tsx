@@ -3,19 +3,23 @@ import axios from 'axios';
 import { GetStaticProps } from 'next';
 import NewsModel from '../models/NewsModel';
 import styles from '../styles/Home.module.css';
+import newsStyles from '../styles/News.module.css';
 
 const News = ({ newsData }: { newsData: NewsModel[] }) => {
   return (
-    <section>
-      {newsData.map((news: NewsModel) => (
-        <article className={styles.card} key={news.id}>
-          <h3> Title : {news.title} </h3>
-          <p>
-            <strong> Body </strong>: {news.body}
-          </p>
-        </article>
-      ))}
-    </section>
+    <>
+      <h1>News</h1>
+      <section className={newsStyles.news}>
+        {newsData.map((news: NewsModel) => (
+          <article className={styles.card} key={news.id}>
+            <h3> Title : {news.title} </h3>
+            <p>
+              <strong> Body </strong>: {news.body}
+            </p>
+          </article>
+        ))}
+      </section>
+    </>
   );
 };
 

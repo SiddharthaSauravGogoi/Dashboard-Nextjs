@@ -1,0 +1,17 @@
+.news {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+  .news {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .news {
+    grid-template-columns: 1fr;
+  }
+}
