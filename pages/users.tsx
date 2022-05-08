@@ -3,19 +3,34 @@ import axios from 'axios';
 import { GetServerSideProps } from 'next';
 import UserModel from '../models/UserModel';
 import UserTable from '../components/Users/usertable';
+import styles from '../styles/Table.module.css';
 
 const Users = ({ userData }: { userData: UserModel[] }) => {
   const [query, setQuery] = React.useState<string>('');
+  const [toggle, setToggle] = React.useState<boolean>(false);
+
   return (
     <section>
-      <label htmlFor="search">
-        <input
-          type="text"
-          placeholder="search"
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </label>
-      <UserTable query={query} userData={userData} />
+      <div className={styles.tableActions}>
+        <label htmlFor="search">
+          <input
+            type="text"
+            placeholder="search"
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+
+        <label className={styles.switch}>
+          <input
+            type="checkbox"
+            onChange={() => setToggle((prevState) => !prevState)}
+            checked={toggle}
+          />
+          <span className={styles.slider}></span>
+        </label>
+      </div>
+
+      <UserTable query={query} userData={userData} toggle={toggle} />
     </section>
   );
 };

@@ -1,16 +1,60 @@
 import React, { useCallback } from 'react';
 import UserModel from '../../models/UserModel';
-import { getTopUsersFromLocalStorage } from '../../shared/helper';
+import {
+  getUsersFromLocalStorage,
+  validateLocalStorageData,
+  isUserExists,
+} from '../../shared/helper';
 import styles from '../../styles/Table.module.css';
+import BlockedUsers from './blockedusers';
 import UserDisplay from './userdisplay';
 
 type Props = {
   userData: UserModel[];
   query: string;
+  toggle: boolean;
 };
 
 const UserTable = (props: Props) => {
   const [userSelection, setUserSelection] = React.useState<UserModel>();
+  const [blockedUsers, setBlockedUsers] = React.useState<UserModel[]>([]);
+  const fiveMinsInMilliSeconds = 300000;
+
+  /**
+   * Check for blocked users and remove them if it has already been over 5 mins
+   * If there is still time left to unblock them, clear their timeout with the remaining time left;
+   * Function runs only on page mount
+   */
+  const checkForBlockedUsers = useCallback((users: UserModel[]) => {
+    const currentTime = Math.floor(new Date().getTime() / 1000);
+    const finalResult: UserModel[] = [];
+
+    for (const user of users) {
+      if (user.blockedAt) {
+        if (!(currentTime - user.blockedAt >= 300)) {
+          finalResult.push(user);
+          window.setTimeout(() => {
+            removeUser(user, 'blockedUsers');
+          }, fiveMinsInMilliSeconds - (currentTime - user.blockedAt) * 1000);
+        }
+      }
+    }
+    !finalResult.length
+      ? window.localStorage.removeItem('blockedUsers')
+      : window.localStorage.setItem(
+          'blockedUsers',
+          JSON.stringify(finalResult)
+        );
+    setBlockedUsers(finalResult);
+  }, []);
+
+  /**
+   * Check for expired users on when page mounts
+   */
+  React.useEffect(() => {
+    const users = getUsersFromLocalStorage('blockedUsers');
+    checkForBlockedUsers(users);
+  }, [checkForBlockedUsers, props.userData]);
 
   /**
    * 1. Checks if data already exists for topusers
@@ -19,36 +63,65 @@ const UserTable = (props: Props) => {
    * 4. if users exists, remove him and update localstorage otherwise add him and update the data
    * @param {UserModel} user
    */
-  const handleTopUsers = useCallback((user: UserModel) => {
-    if (validateLocalStorageData()) {
-      const users = getTopUsersFromLocalStorage();
+  const handleTopUsers = (user: UserModel) => {
+    if (validateLocalStorageData('topusers')) {
+      const users = getUsersFromLocalStorage('topusers');
       isUserExists(users, user)
-        ? removeUser(users, user)
-        : addUser(users, user);
+        ? removeUser(user, 'topusers')
+        : addUser(users, user, 'topusers');
     } else {
-      localStorage.setItem('topusers', JSON.stringify([user]));
+      user.blockedAt = Math.floor(new Date().getTime() / 1000);
+      window.localStorage.setItem('topusers', JSON.stringify([user]));
     }
-  }, []);
+  };
+
+  /**
+   * Top level function for handling blocking/unblocking of users.
+   * Flow is imilar to handleTopUsers except settimeout is introduced in different levels of the function;
+   * settimout is used to remove/automatically unblock user after elapsed time i.e. 5 minutes (300000)
+   * @param { UserModel } user
+   */
+  const handleBlocking = (user: UserModel) => {
+    if (validateLocalStorageData('blockedUsers')) {
+      const users = getUsersFromLocalStorage('blockedUsers');
+      isUserExists(users, user)
+        ? removeUser(user, 'blockedUsers')
+        : addUser(users, user, 'blockedUsers');
+    } else {
+      const id = window.setTimeout(() => {
+        removeUser(user, 'blockedUsers');
+      }, fiveMinsInMilliSeconds);
+      user.blockedAt = Math.floor(new Date().getTime() / 1000);
+      user.timeoutid = id;
+      setBlockedUsers([user]);
+      window.localStorage.setItem('blockedUsers', JSON.stringify([user]));
+    }
+  };
 
   /**
    * Top level function to handle different target clicks
    * @param { UserModel } user
    */
-  const handleUserData = useCallback(
-    (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>, user: UserModel) => {
-      const tag = (e.target as HTMLInputElement).tagName;
-      if (
-        tag !== 'INPUT' &&
-        props.query.length >= 1 &&
-        props.query.match(/^[\w\-\s]+$/)
-      ) {
-        setUserSelection(user);
-        return;
-      }
+  const handleUserData = (
+    e: React.MouseEvent<HTMLTableRowElement, MouseEvent>,
+    user: UserModel
+  ) => {
+    const tag = (e.target as HTMLInputElement).tagName;
+    if (props.toggle) {
+      handleBlocking(user);
+      return;
+    }
+    if (
+      tag !== 'INPUT' &&
+      props.query.length >= 1 &&
+      props.query.match(/^[\w\-\s]+$/)
+    ) {
+      setUserSelection(user);
+      return;
+    } else if (tag === 'INPUT') {
       handleTopUsers(user);
-    },
-    [props.query, handleTopUsers]
-  );
+    }
+  };
 
   /**
    * Filter users with the selected name since it already exists
@@ -56,11 +129,19 @@ const UserTable = (props: Props) => {
    * @param {UserModel[]} users
    * @param {UserModel} user
    */
-  const removeUser = (users: UserModel[], user: UserModel) => {
-    const topUsers = users.filter((topUsers) => topUsers.name !== user.name);
-    !topUsers.length
-      ? localStorage.removeItem('topusers')
-      : localStorage.setItem('topusers', JSON.stringify(topUsers));
+  const removeUser = (user: UserModel, userType: string) => {
+    const newUsers: UserModel[] = getUsersFromLocalStorage('blockedUsers');
+    const updatedUsers = newUsers.filter(
+      (updatedUsers) => updatedUsers.name !== user.name
+    );
+    if (userType === 'blockedUsers') {
+      clearTimeout(user.timeoutid);
+      delete user.timeoutid;
+      setBlockedUsers(updatedUsers);
+    }
+    !updatedUsers.length
+      ? window.localStorage.removeItem(userType)
+      : window.localStorage.setItem(userType, JSON.stringify(updatedUsers));
   };
 
   /**
@@ -68,32 +149,16 @@ const UserTable = (props: Props) => {
    * @param {UserModel[]} users
    * @param {UserModel} user
    */
-  const addUser = (users: UserModel[], user: UserModel) => {
-    localStorage.setItem('topusers', JSON.stringify([...users, user]));
-  };
-
-  /**
-   * A validity check to see the entry exists in localstorage or not
-   * @returns {boolean}
-   */
-  const validateLocalStorageData = () => {
-    if (localStorage.getItem('topusers')) {
-      return true;
+  const addUser = (users: UserModel[], user: UserModel, userType: string) => {
+    if (userType === 'blockedUsers') {
+      user.blockedAt = Math.floor(new Date().getTime() / 1000);
+      const id = window.setTimeout(function () {
+        removeUser(user, 'blockedUsers');
+      }, fiveMinsInMilliSeconds);
+      user.timeoutid = id;
+      setBlockedUsers([...users, user]);
     }
-    return false;
-  };
-
-  /**
-   * Helper method to check if user already exists in the list of retrieved users
-   * @param {UserModel[]} users
-   * @param {UserModel} user
-   * @returns { boolean }
-   */
-  const isUserExists = (users: UserModel[], user: UserModel) => {
-    for (const topUser of users) {
-      if (topUser.name === user.name) return true;
-    }
-    return false;
+    window.localStorage.setItem(userType, JSON.stringify([...users, user]));
   };
 
   /**
@@ -109,7 +174,7 @@ const UserTable = (props: Props) => {
    * @returns { boolean }
    */
   const checkIfExists = (user: UserModel) => {
-    const users = getTopUsersFromLocalStorage();
+    const users = getUsersFromLocalStorage('topusers');
     for (const topUser of users) {
       if (topUser.email === user.email) return true;
     }
@@ -128,7 +193,7 @@ const UserTable = (props: Props) => {
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>Top User</th>
+            {!props.toggle && <th>Top User</th>}
             <th>Name</th>
             <th>Email</th>
           </tr>
@@ -153,18 +218,22 @@ const UserTable = (props: Props) => {
                 key={user.id}
                 onClick={(e) => handleUserData(e, user)}
               >
-                <td>
-                  <input
-                    type="checkbox"
-                    defaultChecked={checkIfExists(user) ? true : false}
-                  />
-                </td>
+                {!props.toggle && (
+                  <td>
+                    <input
+                      type="checkbox"
+                      defaultChecked={checkIfExists(user) ? true : false}
+                    />
+                  </td>
+                )}
+
                 <td> {user.name}</td>
                 <td>{user.email}</td>
               </tr>
             ))}
         </tbody>
       </table>
+      <BlockedUsers blockedUsers={blockedUsers} />
       <UserDisplay
         userSelection={userSelection}
         clearUserDisplay={clearUserDisplay}

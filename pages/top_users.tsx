@@ -61,7 +61,7 @@ const TopUsers = () => {
           </tbody>
         </table>
       ) : (
-        <p> No Topusers exists </p>
+        <p> No topusers.. </p>
       )}
       <UserDisplay
         userSelection={userSelection}

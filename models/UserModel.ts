@@ -7,6 +7,8 @@ export default interface UserModel {
   phone: string;
   website: string;
   company: company;
+  timeoutid?: number;
+  blockedAt?: number;
 }
 
 interface address {
