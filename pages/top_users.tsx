@@ -53,7 +53,11 @@ const TopUsers = () => {
           </thead>
           <tbody>
             {topUsers.map((user: UserModel) => (
-              <tr key={user.id} onClick={() => handleUserData(user)}>
+              <tr
+                className={styles.cPointer}
+                key={user.id}
+                onClick={() => handleUserData(user)}
+              >
                 <td> {user.name}</td>
                 <td>{user.email}</td>
               </tr>
