@@ -139,7 +139,7 @@ const UserTable = (props: Props) => {
       delete user.timeoutid;
       setBlockedUsers(updatedUsers);
     }
-    !updatedUsers.length
+    !newUsers.length
       ? window.localStorage.removeItem(userType)
       : window.localStorage.setItem(userType, JSON.stringify(updatedUsers));
   };
