@@ -49,7 +49,7 @@ const UserTable = (props: Props) => {
   }, []);
 
   /**
-   * Check for expired users on when page mounts
+   * Check for expired blocked users when page mounts
    */
   React.useEffect(() => {
     const users = getUsersFromLocalStorage('blockedUsers');
@@ -77,8 +77,8 @@ const UserTable = (props: Props) => {
 
   /**
    * Top level function for handling blocking/unblocking of users.
-   * Flow is imilar to handleTopUsers except settimeout is introduced in different levels of the function;
-   * settimout is used to remove/automatically unblock user after elapsed time i.e. 5 minutes (300000)
+   * Flow is similar to handleTopUsers except settimeout is introduced in different levels of the function when adding and removing users;
+   * settimout is used to remove automatically/unblock user after elapsed time i.e. 5 minutes (300000 milliseconds)
    * @param { UserModel } user
    */
   const handleBlocking = (user: UserModel) => {
@@ -99,7 +99,7 @@ const UserTable = (props: Props) => {
   };
 
   /**
-   * Top level function to handle different target clicks
+   * Top level function to handle different target clicks on the table row
    * @param { UserModel } user
    */
   const handleUserData = (
