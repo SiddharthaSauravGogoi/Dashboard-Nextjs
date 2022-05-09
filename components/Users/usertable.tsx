@@ -130,7 +130,7 @@ const UserTable = (props: Props) => {
    * @param {UserModel} user
    */
   const removeUser = (user: UserModel, userType: string) => {
-    const newUsers: UserModel[] = getUsersFromLocalStorage('blockedUsers');
+    const newUsers: UserModel[] = getUsersFromLocalStorage(userType);
     const updatedUsers = newUsers.filter(
       (updatedUsers) => updatedUsers.name !== user.name
     );
